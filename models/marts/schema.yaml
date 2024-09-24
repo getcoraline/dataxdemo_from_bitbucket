@@ -1,5 +1,30 @@
 version: 2
 
 models:
-  - name: customers
-    description: "List of customers with summary of order history"
+  - name: mart_jaffle_data__customer_360
+    columns:
+      - name: customer_id
+        data_tests:
+          - unique
+          - not_null
+      - name: customer_name
+        data_tests:
+          - not_null
+      - name: total_orders
+      - name: total_spent
+      - name: avg_order_value
+      - name: first_order_date
+      - name: last_order_date
+      - name: customer_lifetime_days
+      - name: customer_segment
+        data_tests:
+          - accepted_values:
+              values: ['VIP', 'Regular', 'New']
+      - name: product_types_purchased
+      - name: unique_product_types_count
+      - name: visited_store_ids
+      - name: unique_stores_visited
+      - name: is_loyal_customer
+        data_tests:
+          - accepted_values:
+              values: [true, false]

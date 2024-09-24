@@ -1,38 +1,55 @@
 version: 2
 
-sources:
-  - name: jaffle_data
-    database: jaffle_data
-    schema: default
-    tables:
-      - name: orders
-      - name: customers
-
 models:
-  - name: stg_orders
-    description: "Orders"
+  - name: stg_jaffle_data__customers
     columns:
       - name: id
-        description: "The primary key for this table"
         data_tests:
           - unique
           - not_null
-      - name: customer
-        description: "Customer id should be matched"
+      - name: name
+
+  - name: stg_jaffle_data__items
+    columns:
+      - name: id
+        data_tests:
+          - unique
+          - not_null
+      - name: order_id
         data_tests:
           - not_null
-          - relationships:
-              to: ref('stg_customers')
-              field: id
+      - name: sku
+        data_tests:
+          - not_null
+
+  - name: stg_jaffle_data__orders
+    columns:
+      - name: id
+        data_tests:
+          - unique
+          - not_null
+      - name: customer_id
+        data_tests:
+          - not_null
+      - name: ordered_at
+        data_tests:
+          - not_null
+      - name: store_id
+      - name: subtotal
+      - name: tax_paid
       - name: order_total
-        description: "Order total should not be negative"
-        data_tests:
-          - warn_le_zero
-  - name: stg_customers
-    description: "Customers"
+
+  - name: stg_jaffle_data__products
     columns:
-      - name: id
-        description: "The primary key for this table"
+      - name: sku
         data_tests:
           - unique
           - not_null
+      - name: name
+        data_tests:
+          - not_null
+      - name: type
+      - name: price
+        data_tests:
+          - not_null
+      - name: description

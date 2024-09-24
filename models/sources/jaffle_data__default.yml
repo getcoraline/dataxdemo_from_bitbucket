@@ -1,0 +1,33 @@
+version: 2
+
+sources:
+  - name: jaffle_data_default
+    database: jaffle_data
+    schema: default
+    description: Default source for Jaffle Shop data
+    tables:
+      - name: customers
+        columns:
+          - name: id
+          - name: name
+      - name: items
+        columns:
+          - name: id
+          - name: order_id
+          - name: sku
+      - name: orders
+        columns:
+          - name: id
+          - name: customer
+          - name: ordered_at
+          - name: store_id
+          - name: subtotal
+          - name: tax_paid
+          - name: order_total
+      - name: products
+        columns:
+          - name: sku
+          - name: name
+          - name: type
+          - name: price
+          - name: description
