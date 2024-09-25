@@ -37,8 +37,8 @@ SELECT
     cs.visited_store_ids,
     cs.unique_stores_visited,
     CASE 
-        WHEN ci.customer_lifetime_days > 180 AND ci.total_orders > 10 THEN TRUE
-        ELSE FALSE
+        WHEN ci.customer_lifetime_days > 180 AND ci.total_orders > 10 THEN 'true'
+        ELSE 'false'
     END AS is_loyal_customer
 FROM customer_info ci
 LEFT JOIN customer_products cp ON ci.customer_id = cp.customer_id
