@@ -29,7 +29,6 @@ jobs:
 
       - name: Create profiles.yml
         run: |
-          mkdir -p ~/.dbt
           echo "
           dataxdemo:
             target: dev
@@ -70,25 +69,11 @@ jobs:
         run: |
           pip install dbt dbt-databricks
 
-      - name: Create .dbt directory
-        run: mkdir -p ~/.dbt
+      - name: Run dbt debug
+        run: dbt debug --profiles-dir ~/.dbt
 
-      - name: Create profiles.yml
-        run: |
-          mkdir -p ~/.dbt
-          echo "
-          dataxdemo:
-            target: dev
-            outputs:
-              dev:
-                type: databricks
-                catalog: catalog_develop
-                schema: default
-                host: ${{ secrets.DATABRICKS_HOST }}
-                http_path: /sql/1.0/warehouses/a1ed2d6ef2244b72
-                token: ${{ secrets.DATABRICKS_TOKEN }}
-                threads: 4
-          " > ~/.dbt/profiles.yml
-          
+      - name: Install dbt packages
+        run: dbt deps
+
       - name: Generate dbt docs
         run: dbt docs generate --profiles-dir ~/.dbt
