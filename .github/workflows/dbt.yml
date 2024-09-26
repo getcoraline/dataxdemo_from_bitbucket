@@ -39,9 +39,15 @@ jobs:
                 threads: 4
           " > ~/.dbt/profiles.yml
       
-      - name: Run dbt debug, deps, build, and generate docs
-        run: |
-          dbt debug --profiles-dir ~/.dbt
-          dbt deps --profiles-dir ~/.dbt
-          dbt build --profiles-dir ~/.dbt
-          dbt docs generate --profiles-dir ~/.dbt
+      - name: Run dbt debug
+        run: dbt debug --profiles-dir ~/.dbt
+
+      - name: Run dbt deps
+        run: dbt deps --profiles-dir ~/.dbt
+
+      - name: Run dbt build
+        run: dbt build --profiles-dir ~/.dbt
+
+      - name: Generate dbt docs
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: dbt docs generate --profiles-dir ~/.dbt
