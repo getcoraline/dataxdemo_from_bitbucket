@@ -1,0 +1,90 @@
+version: 2
+models:
+  - name: int_jaffle_data__order_items
+    columns:
+      - name: order_id
+        data_tests:
+          - not_null
+
+      - name: customer_id
+        data_tests:
+          - not_null
+
+      - name: ordered_at
+        data_tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: "'2016-09-01'"
+              max_value: "{{ current_timestamp() }}"
+
+      - name: store_id
+        data_tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 1
+              
+      - name: sku
+        data_tests:
+          - not_null
+          - dbt_expectations.expect_column_value_lengths_to_be_between:
+              min_value: 1
+
+      - name: product_name
+        data_tests:
+          - not_null
+          - dbt_expectations.expect_column_value_lengths_to_be_between:
+              min_value: 1
+
+      - name: product_type
+        data_tests:
+          - dbt_expectations.expect_column_values_to_be_in_set:
+              value_set: ['jaffle', 'beverage']
+
+      - name: product_price
+        data_tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              strictly: true
+
+      - name: customer_order_seq
+        data_tests:
+          - not_null
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 1
+              strictly: false
+
+      - name: previous_product_type
+        data_tests:
+          - dbt_expectations.expect_column_values_to_be_null:
+              row_condition: "customer_order_seq = 1"
+
+    data_tests:
+      - dbt_expectations.expect_table_row_count_to_equal:
+          value: 90183
+      - dbt_expectations.expect_table_columns_to_match_ordered_list:
+          column_list: ['order_id', 'customer_id', 'ordered_at', 'store_id', 'sku', 'product_name', 'product_type', 'product_price', 'customer_order_seq', 'previous_product_type']
+
+    unit_tests:
+      - name: test_order_items_data_integrity
+        model: int_jaffle_data__order_items
+        given:
+          - input: ref('stg_jaffle_data__orders')
+            rows:
+              - {id: 101, customer_id: 1, ordered_at: '2023-01-10', store_id: 1}
+              - {id: 102, customer_id: 1, ordered_at: '2023-02-15', store_id: 1}
+              - {id: 201, customer_id: 2, ordered_at: '2023-03-10', store_id: 2}
+          - input: ref('stg_jaffle_data__items')
+            rows:
+              - {order_id: 101, sku: 'SKU001'}
+              - {order_id: 102, sku: 'SKU002'}
+              - {order_id: 201, sku: 'SKU003'}
+          - input: ref('stg_jaffle_data__products')
+            rows:
+              - {sku: 'SKU001', name: 'Product A', type: 'Type A', price: 1500}
+              - {sku: 'SKU002', name: 'Product B', type: 'Type B', price: 2000}
+              - {sku: 'SKU003', name: 'Product C', type: 'Type C', price: 800}
+        expect:
+          rows:
+            - {order_id: 101, customer_id: 1, ordered_at: '2023-01-10', store_id: 1, product_price: 1500}
+            - {order_id: 102, customer_id: 1, ordered_at: '2023-02-15', store_id: 1, product_price: 2000}
+            - {order_id: 201, customer_id: 2, ordered_at: '2023-03-10', store_id: 2, product_price: 800}

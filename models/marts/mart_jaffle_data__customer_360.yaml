@@ -7,28 +7,93 @@ models:
         data_tests:
           - unique
           - not_null
+
       - name: customer_name
         data_tests:
           - not_null
+
       - name: total_orders
+        data_tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 1
+              strictly: false
+
       - name: total_spent
+        data_tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              strictly: true
+
       - name: avg_order_value
+        data_tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              strictly: true
+
       - name: first_order_date
+        data_tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: "'2016-09-01'"
+              max_value: "{{ current_timestamp() }}"
+
       - name: last_order_date
+        data_tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: "'2017-01-08'"
+              max_value: "{{ current_timestamp() }}"
+
       - name: customer_lifetime_days
+        data_tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              strictly: false
+
       - name: customer_segment
         data_tests:
           - accepted_values:
               values: ['VIP', 'Regular', 'New']
+          - dbt_expectations.expect_column_values_to_be_in_set:
+              value_set: ['VIP', 'Regular', 'New']
+
       - name: product_types_purchased
+        data_tests:
+          - dbt_expectations.expect_column_to_exist
+
       - name: unique_product_types_count
+        data_tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 1
+              strictly: false
+
       - name: visited_store_ids
+        data_tests:
+          - dbt_expectations.expect_column_to_exist
+
       - name: unique_stores_visited
+        data_tests:
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 1
+              strictly: false
+
       - name: is_loyal_customer
         data_tests:
           - accepted_values:
               values: ['true', 'false']
               quote: true
+          - dbt_expectations.expect_column_values_to_be_in_set:
+              value_set: ['true', 'false']
+
+    data_tests:
+      - dbt_expectations.expect_table_row_count_to_equal:
+          value: 930
+      - dbt_expectations.expect_table_columns_to_match_ordered_list:
+          column_list: [
+            'customer_id', 'customer_name', 'total_orders', 'total_spent', 
+            'avg_order_value', 'first_order_date', 'last_order_date', 
+            'customer_lifetime_days', 'customer_segment', 'product_types_purchased', 
+            'unique_product_types_count', 'visited_store_ids', 'unique_stores_visited', 
+            'is_loyal_customer'
+          ]
 
 unit_tests:
   - name: test_customer_360_loyalty_status

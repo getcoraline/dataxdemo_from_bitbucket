@@ -7,7 +7,13 @@ models:
         data_tests:
           - unique
           - not_null
+          - dbt_expectations.expect_column_values_to_be_of_type:
+              column_type: string
       - name: name
+        data_tests:
+          - dbt_expectations.expect_column_values_to_be_of_type:
+              column_type: string
+          - dbt_expectations.expect_column_values_to_not_be_null
 
   - name: stg_jaffle_data__items
     columns:
@@ -15,12 +21,18 @@ models:
         data_tests:
           - unique
           - not_null
+          - dbt_expectations.expect_column_values_to_be_of_type:
+              column_type: string
       - name: order_id
         data_tests:
           - not_null
+          - dbt_expectations.expect_column_values_to_be_of_type:
+              column_type: string
       - name: sku
         data_tests:
           - not_null
+          - dbt_expectations.expect_column_values_to_be_of_type:
+              column_type: string
 
   - name: stg_jaffle_data__orders
     columns:
@@ -28,16 +40,46 @@ models:
         data_tests:
           - unique
           - not_null
+          - dbt_expectations.expect_column_values_to_be_of_type:
+              column_type: string
       - name: customer_id
         data_tests:
           - not_null
+          - dbt_expectations.expect_column_values_to_be_of_type:
+              column_type: string
       - name: ordered_at
         data_tests:
           - not_null
+          - dbt_expectations.expect_column_values_to_be_of_type:
+              column_type: timestamp
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: "'2016-09-01'"
+              max_value: "{{ current_timestamp() }}"
       - name: store_id
+        data_tests:
+          - dbt_expectations.expect_column_values_to_be_of_type:
+              column_type: string
       - name: subtotal
+        data_tests:
+          - dbt_expectations.expect_column_values_to_be_of_type:
+              column_type: bigint
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              strictly: false
       - name: tax_paid
+        data_tests:
+          - dbt_expectations.expect_column_values_to_be_of_type:
+              column_type: bigint
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              strictly: false
       - name: order_total
+        data_tests:
+          - dbt_expectations.expect_column_values_to_be_of_type:
+              column_type: bigint
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              strictly: false
 
   - name: stg_jaffle_data__products
     columns:
@@ -45,11 +87,30 @@ models:
         data_tests:
           - unique
           - not_null
+          - dbt_expectations.expect_column_values_to_be_of_type:
+              column_type: string
       - name: name
         data_tests:
           - not_null
+          - dbt_expectations.expect_column_values_to_be_of_type:
+              column_type: string
       - name: type
+        data_tests:
+          - dbt_expectations.expect_column_values_to_be_of_type:
+              column_type: string
       - name: price
         data_tests:
           - not_null
+          - dbt_expectations.expect_column_values_to_be_of_type:
+              column_type: bigint
+          - dbt_expectations.expect_column_values_to_be_between:
+              min_value: 0
+              strictly: true
       - name: description
+        data_tests:
+          - dbt_expectations.expect_column_values_to_be_of_type:
+              column_type: string
+
+    data_tests:
+      - dbt_expectations.expect_table_columns_to_match_ordered_list:
+          column_list: ['sku', 'name', 'type', 'price', 'description']
