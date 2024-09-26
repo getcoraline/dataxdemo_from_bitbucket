@@ -1,0 +1,17 @@
+unit_tests:
+  - name: test_customer_order_history_segments
+    model: int_jaffle_data__customer_order_history
+    given:
+      - input: ref('int_jaffle_data__order_items')
+        rows:
+          - {customer_id: 1, order_id: 101, ordered_at: '2023-01-10', product_price: 1500}
+          - {customer_id: 1, order_id: 102, ordered_at: '2023-02-15', product_price: 2000}
+          - {customer_id: 2, order_id: 201, ordered_at: '2023-03-10', product_price: 800}
+      - input: ref('stg_jaffle_data__customers')
+        rows:
+          - {id: 1, name: 'John'}
+          - {id: 2, name: 'Jane'}
+    expect:
+      rows:
+        - {customer_id: 1, total_orders: 2, total_spent: 3500, avg_order_value: 1750, customer_segment: 'Regular'}
+        - {customer_id: 2, total_orders: 1, total_spent: 800, avg_order_value: 800, customer_segment: 'New'}

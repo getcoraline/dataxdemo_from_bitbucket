@@ -1,5 +1,4 @@
 version: 2
-
 models:
   - name: stg_jaffle_data__customers
     columns:

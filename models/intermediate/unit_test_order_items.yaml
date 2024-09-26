@@ -1,0 +1,24 @@
+unit_tests:
+  - name: test_order_items_data_integrity
+    model: int_jaffle_data__order_items
+    given:
+      - input: ref('stg_jaffle_data__orders')
+        rows:
+          - {id: 101, customer_id: 1, ordered_at: '2023-01-10', store_id: 1}
+          - {id: 102, customer_id: 1, ordered_at: '2023-02-15', store_id: 1}
+          - {id: 201, customer_id: 2, ordered_at: '2023-03-10', store_id: 2}
+      - input: ref('stg_jaffle_data__items')
+        rows:
+          - {order_id: 101, sku: 'SKU001'}
+          - {order_id: 102, sku: 'SKU002'}
+          - {order_id: 201, sku: 'SKU003'}
+      - input: ref('stg_jaffle_data__products')
+        rows:
+          - {sku: 'SKU001', name: 'Product A', type: 'Type A', price: 1500}
+          - {sku: 'SKU002', name: 'Product B', type: 'Type B', price: 2000}
+          - {sku: 'SKU003', name: 'Product C', type: 'Type C', price: 800}
+    expect:
+      rows:
+        - {order_id: 101, customer_id: 1, ordered_at: '2023-01-10', store_id: 1, product_price: 1500}
+        - {order_id: 102, customer_id: 1, ordered_at: '2023-02-15', store_id: 1, product_price: 2000}
+        - {order_id: 201, customer_id: 2, ordered_at: '2023-03-10', store_id: 2, product_price: 800}

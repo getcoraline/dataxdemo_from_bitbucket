@@ -1,0 +1,45 @@
+unit_tests:
+  - name: test_customer_360_loyalty_status
+    model: mart_jaffle_data__customer_360
+    given:
+      - input: ref('stg_jaffle_data__customers')
+        rows:
+          - {id: 1, name: 'Alice'}
+          - {id: 2, name: 'Bob'}
+      - input: ref('int_jaffle_data__customer_order_history')
+        rows:
+          - {customer_id: 1, total_orders: 15, total_spent: 1500, avg_order_value: 100, first_order_date: '2023-01-01', last_order_date: '2023-07-20', customer_lifetime_days: 200, customer_segment: 'Regular'}
+          - {customer_id: 2, total_orders: 5, total_spent: 500, avg_order_value: 100, first_order_date: '2023-05-01', last_order_date: '2023-07-10', customer_lifetime_days: 100, customer_segment: 'New'}
+      - input: ref('int_jaffle_data__order_items')
+        rows:
+          - {customer_id: 1, product_type: 'SKU001', store_id: 1}
+          - {customer_id: 1, product_type: 'SKU002', store_id: 2}
+          - {customer_id: 2, product_type: 'SKU003', store_id: 1}
+    expect:
+      rows:
+        - {customer_id: 1, is_loyal_customer: 'true'}
+        - {customer_id: 2, is_loyal_customer: 'false'}
+
+  - name: test_customer_segment_values
+    model: mart_jaffle_data__customer_360
+    given:
+      - input: ref('stg_jaffle_data__customers')
+        rows:
+          - {id: 1, name: 'Alice'}
+          - {id: 2, name: 'Bob'}
+          - {id: 3, name: 'Charlie'}
+      - input: ref('int_jaffle_data__customer_order_history')
+        rows:
+          - {customer_id: 1, total_orders: 20, total_spent: 2000, avg_order_value: 100, first_order_date: '2023-01-01', last_order_date: '2023-07-20', customer_lifetime_days: 200, customer_segment: 'VIP'}
+          - {customer_id: 2, total_orders: 10, total_spent: 1000, avg_order_value: 100, first_order_date: '2023-02-01', last_order_date: '2023-07-10', customer_lifetime_days: 160, customer_segment: 'Regular'}
+          - {customer_id: 3, total_orders: 2, total_spent: 200, avg_order_value: 100, first_order_date: '2023-06-01', last_order_date: '2023-07-01', customer_lifetime_days: 30, customer_segment: 'New'}
+      - input: ref('int_jaffle_data__order_items')
+        rows:
+          - {customer_id: 1, product_type: 'SKU001', store_id: 1}
+          - {customer_id: 2, product_type: 'SKU002', store_id: 1}
+          - {customer_id: 3, product_type: 'SKU003', store_id: 2}
+    expect:
+      rows:
+        - {customer_id: 1, customer_segment: 'VIP'}
+        - {customer_id: 2, customer_segment: 'Regular'}
+        - {customer_id: 3, customer_segment: 'New'}
