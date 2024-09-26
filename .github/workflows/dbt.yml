@@ -39,46 +39,9 @@ jobs:
                 threads: 4
           " > ~/.dbt/profiles.yml
       
-      - name: Run dbt debug, deps, and build
+      - name: Run dbt debug, deps, build, and generate docs
         run: |
           dbt debug --profiles-dir ~/.dbt
           dbt deps --profiles-dir ~/.dbt
           dbt build --profiles-dir ~/.dbt
-
-  dbt-generate-docs:
-    runs-on: ubuntu-latest
-    needs: dbt-build-test
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    
-    steps:
-      - uses: actions/checkout@v3
-      
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.11'
-      
-      - name: Install dependencies
-        run: pip install dbt dbt-databricks
-      
-      - name: Create profiles.yml
-        run: |
-          mkdir -p ~/.dbt
-          echo "
-          dataxdemo:
-            target: dev
-            outputs:
-              dev:
-                type: databricks
-                catalog: catalog_develop
-                schema: default
-                host: ${{ secrets.DATABRICKS_HOST }}
-                http_path: /sql/1.0/warehouses/a1ed2d6ef2244b72
-                token: ${{ secrets.DATABRICKS_TOKEN }}
-                threads: 4
-          " > ~/.dbt/profiles.yml
-      
-      - name: Generate dbt docs
-        run: |
-          dbt deps --profiles-dir ~/.dbt
           dbt docs generate --profiles-dir ~/.dbt
