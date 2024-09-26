@@ -63,9 +63,5 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install dependencies
-        run: |
-          pip install dbt dbt-databricks
-
       - name: Generate dbt docs
         run: dbt docs generate
