@@ -58,7 +58,7 @@ jobs:
 
   dbt-generate-docs:
     runs-on: ubuntu-latest
-    needs: dbt-test
+    needs: dbt-build-test
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
 
     steps:
