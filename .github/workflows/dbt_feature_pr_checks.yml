@@ -1,27 +1,24 @@
-name: DBT CI
+name: dbt Feature PR Checks
 
 on:
-  push:
-    branches:
-      - main
   pull_request:
     branches:
-      - main
+      - feature/dev01
 
 jobs:
-  dbt-build-and-generate-docs:
+  dbt-tests:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-      
+
       - name: Install dependencies
         run: pip install dbt dbt-databricks
-      
+
       - name: Create profiles.yml
         run: |
           mkdir -p ~/.dbt
@@ -38,16 +35,12 @@ jobs:
                 token: ${{ secrets.DATABRICKS_TOKEN }}
                 threads: 4
           " > ~/.dbt/profiles.yml
-      
+
       - name: Run dbt debug
         run: dbt debug --profiles-dir ~/.dbt
 
       - name: Run dbt deps
         run: dbt deps --profiles-dir ~/.dbt
 
-      - name: Run dbt build
-        run: dbt build --profiles-dir ~/.dbt
-
-      - name: Generate dbt docs
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        run: dbt docs generate --profiles-dir ~/.dbt
+      - name: Run unit tests and generic tests
+        run: dbt test --profiles-dir ~/.dbt --select test_type:unit test_type:generic
