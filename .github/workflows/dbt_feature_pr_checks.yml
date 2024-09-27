@@ -3,7 +3,7 @@ name: dbt Feature PR Checks
 on:
   pull_request:
     branches:
-      - feature/dev01
+      - qa
 
 jobs:
   dbt-tests:
