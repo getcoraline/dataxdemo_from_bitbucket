@@ -52,4 +52,4 @@ jobs:
         run: dbt docs generate --profiles-dir ~/.dbt
 
       - name: Push to OpenMetadata (Ingest metadata into OpenMetadata)
-        run: python -m metadata ingest -c path/to/openmetadata_config.yaml
+        run: python -m metadata ingest -c openmetadata_config.yaml
