@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  dbt-build-and-docs:
+  dbt-build-and-generate-docs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -51,5 +51,22 @@ jobs:
       - name: Generate dbt docs (Create documentation for dbt models)
         run: dbt docs generate --profiles-dir ~/.dbt
 
-      - name: Push to OpenMetadata (Ingest metadata into OpenMetadata)
-        run: python -m metadata ingest -c openmetadata_config.yaml
+      - uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Upload to blob storage (เพิ่มคำอธิบายตรงนี้)
+        uses: azure/CLI@v1
+        with:
+          inlineScript: |
+            az storage blob delete-batch --account-name crldataxlake --auth-mode key -s '$web'
+            az storage blob upload-batch --account-name crldataxlake --auth-mode key -d '$web' -s public/
+
+      - name: logout
+        run: |
+          az logout
+        if: always()
+
+
+#      - name: Push to OpenMetadata (Ingest metadata into OpenMetadata)
+#        run: python -m metadata ingest -c openmetadata_config.yaml

@@ -1,18 +1,53 @@
 source:
   type: dbt
-  serviceName: dataxdemo
+  serviceName: service_name
   sourceConfig:
     config:
       type: DBT
-      dbtCatalogFilePath: ./target/catalog.json
-      dbtManifestFilePath: ./target/manifest.json
-      dbtRunResultsFilePath: ./target/run_results.json
+      dbtConfigSource:
+        dbtConfigType: azure
+        dbtSecurityConfig:
+          clientId: clientId
+          clientSecret: clientSecret
+          tenantId: tenantId
+          accountName: accountName
+        dbtPrefixConfig:
+          dbtBucketName: bucket_name
+          dbtObjectPrefix: main_dir/dbt_files/
+      # dbtUpdateDescriptions: true or false
+      # includeTags: true or false
+      # dbtClassificationName: dbtTags
+      # databaseFilterPattern:
+      #   includes:
+      #     - .*db.*
+      #   excludes:
+      #     - .*demo.*
+      # schemaFilterPattern:
+      #   includes:
+      #     - .*schema.*
+      #   excludes:
+      #     - .*demo.*
+      # tableFilterPattern:
+      #   includes:
+      #     - .*table.*
+      #   excludes:
+      #     - .*demo.*
 sink:
   type: metadata-rest
   config: {}
 workflowConfig:
+  loggerLevel: INFO  # DEBUG, INFO, WARNING or ERROR
   openMetadataServerConfig:
-    hostPort: ${{ secrets.OPENMETADATA_HOST }}
+    hostPort: "http://localhost:8585/api"
     authProvider: openmetadata
     securityConfig:
-      jwtToken: ${{ secrets.OPENMETADATA_JWT_TOKEN }}
+      jwtToken: "{bot_jwt_token}"
+    ## Store the service Connection information
+    storeServiceConnection: true  # false
+    ## Secrets Manager Configuration
+    # secretsManagerProvider: aws, azure or noop
+    # secretsManagerLoader: airflow or env
+    ## If SSL, fill the following
+    # verifySSL: validate  # or ignore
+    # sslConfig:
+    #   caCertificate: /local/path/to/certificate
