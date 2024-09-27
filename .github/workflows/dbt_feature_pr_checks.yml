@@ -11,15 +11,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python
+      - name: Set up Python (Set up Python 3.11 environment)
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      - name: Install dependencies
+      - name: Install dependencies (Install dbt and dbt-databricks)
         run: pip install dbt dbt-databricks
 
-      - name: Create profiles.yml
+      - name: Create profiles.yml (Configure dbt profile for development)
         run: |
           mkdir -p ~/.dbt
           echo "
@@ -36,11 +36,11 @@ jobs:
                 threads: 4
           " > ~/.dbt/profiles.yml
 
-      - name: Run dbt debug
+      - name: Run dbt debug (Check connection and configuration)
         run: dbt debug --profiles-dir ~/.dbt
 
-      - name: Run dbt deps
+      - name: Run dbt deps (Install required dbt packages)
         run: dbt deps --profiles-dir ~/.dbt
 
-      - name: Run unit tests and generic tests
+      - name: Run unit tests and generic tests (Execute unit and generic tests)
         run: dbt test --profiles-dir ~/.dbt --select test_type:unit test_type:generic
