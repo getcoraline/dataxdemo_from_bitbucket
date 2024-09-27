@@ -44,3 +44,5 @@ jobs:
 
       - name: Run unit tests and generic tests (Execute unit and generic tests)
         run: dbt test --profiles-dir ~/.dbt --select test_type:unit test_type:generic
+
+#
