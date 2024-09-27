@@ -9,17 +9,20 @@ jobs:
   dbt-build-and-docs:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - name: Set up Python (Set up Python 3.11 environment)
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
-      - name: Install dependencies (Install dbt and dbt-databricks)
-        run: pip install dbt dbt-databricks
+      - name: Install dependencies
+        run: |
+          pip install dbt-core dbt-databricks
+          pip install openmetadata-ingestion
 
-      - name: Create profiles.yml (Configure dbt profile for production)
+      - name: Create dbt profiles.yml (Configure dbt profile for production environment)
         run: |
           mkdir -p ~/.dbt
           echo "
@@ -31,67 +34,22 @@ jobs:
                 catalog: catalog_main
                 schema: default
                 host: ${{ secrets.DATABRICKS_HOST }}
-                http_path: /sql/1.0/warehouses/a1ed2d6ef2244b72
+                http_path: ${{ secrets.DATABRICKS_HTTP_PATH }}
                 token: ${{ secrets.DATABRICKS_TOKEN }}
                 threads: 4
           " > ~/.dbt/profiles.yml
 
-      - name: Run dbt debug (Check connection and configuration)
+      - name: Run dbt debug (Check dbt connection and configuration)
         run: dbt debug --profiles-dir ~/.dbt
 
-      - name: Run dbt deps (Install required dbt packages)
+      - name: Run dbt deps (Install required dbt packages and dependencies)
         run: dbt deps --profiles-dir ~/.dbt
 
-      - name: Run dbt build (Apply transformations and build models)
+      - name: Run dbt build (Build dbt models in the production environment)
         run: dbt build --profiles-dir ~/.dbt
 
-      - name: Generate dbt docs (Generate documentation for the models)
+      - name: Generate dbt docs (Create documentation for dbt models)
         run: dbt docs generate --profiles-dir ~/.dbt
 
-      # Add steps here to publish or store the generated docs if needed
-
-#      - name: Publish docs to OpenMetadata
-#        env:
-#          OPENMETADATA_HOST: ${{ secrets.OPENMETADATA_HOST }}
-#          OPENMETADATA_API_TOKEN: ${{ secrets.OPENMETADATA_API_TOKEN }}
-#        run: |
-#          python - <<EOF
-#          import requests
-#          import os
-#          import json
-#          from pathlib import Path
-#
-#          # OpenMetadata API endpoint
-#          api_url = f"{os.environ['OPENMETADATA_HOST']}/api/v1/dbt/ingest"
-#
-#          # Headers for authentication
-#          headers = {
-#              "Authorization": f"Bearer {os.environ['OPENMETADATA_API_TOKEN']}",
-#              "Content-Type": "application/json"
-#          }
-#
-#          # Read the generated dbt docs
-#          catalog_json_path = Path("target/catalog.json")
-#          manifest_json_path = Path("target/manifest.json")
-#
-#          with open(catalog_json_path, "r") as catalog_file, open(manifest_json_path, "r") as manifest_file:
-#              catalog_data = json.load(catalog_file)
-#              manifest_data = json.load(manifest_file)
-#
-#          # Prepare the payload
-#          payload = {
-#              "dbtCatalogFile": catalog_data,
-#              "dbtManifestFile": manifest_data,
-#              "dbtRunResultsFile": {}  # Add run results if available
-#          }
-#
-#          # Make the API call to OpenMetadata
-#          response = requests.post(api_url, headers=headers, json=payload)
-#
-#          if response.status_code == 200:
-#              print("Successfully published dbt docs to OpenMetadata")
-#          else:
-#              print(f"Failed to publish dbt docs. Status code: {response.status_code}")
-#              print(f"Response: {response.text}")
-#              exit(1)
-#          EOF
+      - name: Push to OpenMetadata (Ingest metadata into OpenMetadata)
+        run: python -m metadata ingest -c path/to/openmetadata_config.yaml

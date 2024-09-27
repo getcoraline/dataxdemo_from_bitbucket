@@ -1,0 +1,18 @@
+source:
+  type: dbt
+  serviceName: dataxdemo
+  sourceConfig:
+    config:
+      type: DBT
+      dbtCatalogFilePath: ./target/catalog.json
+      dbtManifestFilePath: ./target/manifest.json
+      dbtRunResultsFilePath: ./target/run_results.json
+sink:
+  type: metadata-rest
+  config: {}
+workflowConfig:
+  openMetadataServerConfig:
+    hostPort: ${{ secrets.OPENMETADATA_HOST }}
+    authProvider: openmetadata
+    securityConfig:
+      jwtToken: ${{ secrets.OPENMETADATA_JWT_TOKEN }}
