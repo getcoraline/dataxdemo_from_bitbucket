@@ -60,7 +60,7 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "*Unit and generic dbt tests failed on feature/dev01 branch*\n<https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|*Check Job Results*>"
+                    "text": "*Unit and generic dbt tests failed on qa branch*\n<https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|*Check Job Results*>"
                   }
                 },
                 {
