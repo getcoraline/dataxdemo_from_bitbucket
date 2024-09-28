@@ -17,13 +17,13 @@ jobs:
           channel-id: 'dataxdemo-notifications'
           payload: |
             {
-              "text": "New Pull Request Created",
+              "text": "Notification: New Pull Request Created on feature/dev01 branch",
               "blocks": [
                 {
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "*New Pull Request Created*\n<${{ github.event.pull_request.html_url }}|*View Details: ${{ github.event.pull_request.title }}*>"
+                    "text": "*Notification: New Pull Request Created on feature/dev01 branch*\n<${{ github.event.pull_request.html_url }}|*View Details: ${{ github.event.pull_request.title }}*>"
                   }
                 },
                 {
@@ -75,25 +75,25 @@ jobs:
       - name: Run dbt deps (Install required dbt packages and dependencies)
         run: dbt deps --profiles-dir ~/.dbt
 
-      - name: Run unit tests and generic tests
+      - name: Run Unit, Generic, and Great Expectations tests
         id: unit_generic_tests
         run: dbt test --profiles-dir ~/.dbt --select test_type:unit test_type:generic
         continue-on-error: true
 
-      - name: Notify Slack on unit and generic test failure
+      - name: Notify Slack on test failures (Unit, Generic (with Great Expectations))
         if: steps.unit_generic_tests.outcome == 'failure'
         uses: slackapi/slack-github-action@v1.27.0
         with:
           channel-id: 'dataxdemo-notifications'
           payload: |
             {
-              "text": "Unit and generic dbt tests failed on feature/dev01 branch",
+              "text": "Failure Notification: Tests failed on feature/dev01 branch",
               "blocks": [
                 {
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "*Unit and generic dbt tests failed on feature/dev01 branch*\n<https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|*Check Job Results*>"
+                    "text": "*Failure Notification: Tests failed on feature/dev01 branch*\n<https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|*Check Job Results*>"
                   }
                 },
                 {
@@ -109,7 +109,7 @@ jobs:
                     },
                     {
                       "type": "mrkdwn",
-                      "text": "*Failed tests:*\nUnit and generic tests"
+                      "text": "*Failed tests:*\nUnit and Generic (with Great Expectations) tests"
                     },
                     {
                       "type": "mrkdwn",
@@ -126,6 +126,6 @@ jobs:
         if: steps.unit_generic_tests.outcome == 'failure'
         run: exit 1
 
-      - name: Run dbt run (Run data transformations on the catalog_test environment)
+      - name: Run dbt run (Run data transformations on the catalog_develop environment)
         run: dbt run --profiles-dir ~/.dbt
         
