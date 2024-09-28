@@ -80,17 +80,8 @@ jobs:
         run: dbt test --profiles-dir ~/.dbt --select test_type:unit test_type:generic
         continue-on-error: true
 
-      - name: Check for existing notification
-        id: check_notification
-        run: |
-          echo "NOTIFICATION_SENT=$(cat .notification_sent 2>/dev/null || echo false)" >> $GITHUB_OUTPUT
-
-      - name: Create notification flag
-        if: steps.unit_generic_tests.outcome == 'failure' && steps.check_notification.outputs.NOTIFICATION_SENT == 'false'
-        run: echo true > .notification_sent
-
       - name: Notify Slack on unit and generic test failure
-        if: steps.unit_generic_tests.outcome == 'failure' && steps.check_notification.outputs.NOTIFICATION_SENT == 'false'
+        if: steps.unit_generic_tests.outcome == 'failure'
         uses: slackapi/slack-github-action@v1.27.0
         with:
           channel-id: 'dataxdemo-notifications'
@@ -134,5 +125,3 @@ jobs:
       - name: Fail workflow if tests failed
         if: steps.unit_generic_tests.outcome == 'failure'
         run: exit 1
-      
-      #
