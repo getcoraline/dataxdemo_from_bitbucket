@@ -1,4 +1,4 @@
-name: dbt QA Merge Checks
+name: dbt qa Merge Checks
 
 on:
   push:
@@ -60,7 +60,7 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "View Details:* <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}>"
+                    "text": "*Unit and generic dbt tests failed on feature/dev01 branch*\n<https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|*Check Job Results*>"
                   }
                 },
                 {
@@ -107,7 +107,7 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "View Details:* <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}>"
+                    "text": "*All dbt tests (unit, generic, singular) failed on qa branch*\n<https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|*Check Job Results*>"
                   }
                 },
                 {

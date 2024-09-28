@@ -1,4 +1,4 @@
-name: dbt Feature PR Checks
+name: dbt feature/dev01 PR Checks
 
 on:
   pull_request:
@@ -23,7 +23,7 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "*New Pull Request Created*\n<${{ github.event.pull_request.html_url }}|View Details: ${{ github.event.pull_request.title }}>"
+                    "text": "*New Pull Request Created*\n<${{ github.event.pull_request.html_url }}|View Pull Request Details: ${{ github.event.pull_request.title }}>"
                   }
                 },
                 {
@@ -93,7 +93,7 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "*Unit and generic dbt tests failed on feature/dev01 branch*\n<${{ github.event.pull_request.html_url }}|View Details: ${{ github.event.pull_request.title }}>"
+                    "text": "*Unit and generic dbt tests failed on feature/dev01 branch*\n<${{ github.event.pull_request.html_url }}|*View Details*>"
                   }
                 },
                 {

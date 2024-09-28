@@ -1,4 +1,4 @@
-name: dbt Main Merge Actions
+name: dbt main Merge Actions
 
 on:
   push:
