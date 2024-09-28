@@ -60,7 +60,7 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "*Unit and generic dbt tests failed on feature/dev01 branch*\n<${{ github.event.head_commit.url }}|Commit: ${{ github.event.head_commit.message }}>"
+                    "text": "*Unit and generic dbt tests failed on feature/dev01 branch*\n<${{ github.event.pull_request.html_url }}|Commit: ${{ github.event.pull_request.title }}>"
                   }
                 },
                 {
@@ -68,7 +68,7 @@ jobs:
                   "fields": [
                     {
                       "type": "mrkdwn",
-                      "text": "*Pusher:*\n${{ github.event.pusher.name }}"
+                      "text": "*Pusher:*\n${{ github.event.pull_request.user.login }}"
                     },
                     {
                       "type": "mrkdwn",
