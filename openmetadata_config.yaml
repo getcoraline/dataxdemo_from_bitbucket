@@ -1,53 +1,25 @@
 source:
   type: dbt
-  serviceName: service_name
+  serviceName: dataxdemo
   sourceConfig:
     config:
       type: DBT
       dbtConfigSource:
-        dbtConfigType: azure
-        dbtSecurityConfig:
-          clientId: clientId
-          clientSecret: clientSecret
-          tenantId: tenantId
-          accountName: accountName
-        dbtPrefixConfig:
-          dbtBucketName: bucket_name
-          dbtObjectPrefix: main_dir/dbt_files/
-      # dbtUpdateDescriptions: true or false
-      # includeTags: true or false
-      # dbtClassificationName: dbtTags
-      # databaseFilterPattern:
-      #   includes:
-      #     - .*db.*
-      #   excludes:
-      #     - .*demo.*
-      # schemaFilterPattern:
-      #   includes:
-      #     - .*schema.*
-      #   excludes:
-      #     - .*demo.*
-      # tableFilterPattern:
-      #   includes:
-      #     - .*table.*
-      #   excludes:
-      #     - .*demo.*
+        dbtConfigType: local
+        dbtCatalogFilePath: ${{ github.workspace }}/target/catalog.json
+        dbtManifestFilePath: ${{ github.workspace }}/target/manifest.json
+        dbtRunResultsFilePath: ${{ github.workspace }}/target/run_results.json
+      dbtUpdateDescriptions: true
+      includeTags: true
+      dbtClassificationName: dbtTags
 sink:
   type: metadata-rest
   config: {}
 workflowConfig:
-  loggerLevel: INFO  # DEBUG, INFO, WARNING or ERROR
+  loggerLevel: INFO
   openMetadataServerConfig:
-    hostPort: "http://localhost:8585/api"
+    hostPort: "http:/57.155.90.156:8585/api"
     authProvider: openmetadata
     securityConfig:
-      jwtToken: "{bot_jwt_token}"
-    ## Store the service Connection information
-    storeServiceConnection: true  # false
-    ## Secrets Manager Configuration
-    # secretsManagerProvider: aws, azure or noop
-    # secretsManagerLoader: airflow or env
-    ## If SSL, fill the following
-    # verifySSL: validate  # or ignore
-    # sslConfig:
-    #   caCertificate: /local/path/to/certificate
+      jwtToken: ${{ secrets.OPENMETADATA_JWT_TOKEN }}
+    storeServiceConnection: true

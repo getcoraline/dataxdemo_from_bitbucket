@@ -48,24 +48,14 @@ jobs:
       - name: Run dbt build (Build dbt models in the production environment)
         run: dbt build --profiles-dir ~/.dbt
 
-      - name: Generate dbt docs (Create documentation for dbt models)
+      - name: Generate dbt docs
         run: dbt docs generate --profiles-dir ~/.dbt
 
-      - uses: azure/login@v1
-        with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-
-      - name: Upload to blob storage (เพิ่มคำอธิบายตรงนี้)
-        uses: azure/CLI@v1
-        with:
-          inlineScript: |
-            az storage blob delete-batch --account-name crldataxlake --auth-mode key -s '$web'
-            az storage blob upload-batch --account-name crldataxlake --auth-mode key -d '$web' -s public/
-
-      - name: logout
+      - name: Run OpenMetadata ingestion (Ingest metadata into OpenMetadata)
+        env:
+          OPENMETADATA_JWT_TOKEN: ${{ secrets.OPENMETADATA_JWT_TOKEN }}
         run: |
-          az logout
-        if: always()
+          python -m metadata ingest -c ${{ github.workspace }}/openmetadata_config.yaml
 
 
 #      - name: Push to OpenMetadata (Ingest metadata into OpenMetadata)
