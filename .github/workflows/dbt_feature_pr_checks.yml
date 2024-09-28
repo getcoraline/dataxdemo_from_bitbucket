@@ -77,6 +77,10 @@ jobs:
                     {
                       "type": "mrkdwn",
                       "text": "*Failed tests:*\nUnit and generic tests"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Run ID:*\n${{ github.run_id }}"
                     }
                   ]
                 }
