@@ -54,13 +54,13 @@ jobs:
           channel-id: 'dataxdemo-notifications'
           payload: |
             {
-              "text": "Unit and generic dbt tests failed on QA branch",
+              "text": "Unit and generic dbt tests failed on qa branch",
               "blocks": [
                 {
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "*Unit and generic dbt tests failed on QA branch*\n<${{ github.event.head_commit.url }}|Commit: ${{ github.event.head_commit.message }}>"
+                    "text": "*Unit and generic dbt tests failed on qa branch*\n<${{ github.event.pull_request.html_url }}|Commit: ${{ github.event.pull_request.title }}>"
                   }
                 },
                 {
@@ -68,7 +68,7 @@ jobs:
                   "fields": [
                     {
                       "type": "mrkdwn",
-                      "text": "*Pusher:*\n${{ github.event.pusher.name }}"
+                      "text": "*Pusher:*\n${{ github.event.pull_request.user.login }}"
                     },
                     {
                       "type": "mrkdwn",
@@ -77,6 +77,10 @@ jobs:
                     {
                       "type": "mrkdwn",
                       "text": "*Failed tests:*\nUnit and generic tests"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Run ID:*\n${{ github.run_id }}"
                     }
                   ]
                 }
@@ -84,6 +88,10 @@ jobs:
             }
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+        
+      - name: Fail workflow if tests failed
+        if: steps.unit_generic_tests.outcome == 'failure'
+        run: exit 1
 
       - name: Run all tests (including singular tests)
         id: all_tests
@@ -97,13 +105,13 @@ jobs:
           channel-id: 'dataxdemo-notifications'
           payload: |
             {
-              "text": "All dbt tests (unit, generic, singular) failed on QA branch",
+              "text": "All dbt tests (unit, generic, singular) failed on qa branch",
               "blocks": [
                 {
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "*All dbt tests (unit, generic, singular) failed on QA branch*\n<${{ github.event.head_commit.url }}|Commit: ${{ github.event.head_commit.message }}>"
+                    "text": "*All dbt tests (unit, generic, singular) failed on qa branch*\n<${{ github.event.pull_request.html_url }}|Commit: ${{ github.event.pull_request.title }}>"
                   }
                 },
                 {
@@ -111,7 +119,7 @@ jobs:
                   "fields": [
                     {
                       "type": "mrkdwn",
-                      "text": "*Pusher:*\n${{ github.event.pusher.name }}"
+                      "text": "*Pusher:*\n${{ github.event.pull_request.user.login }}"
                     },
                     {
                       "type": "mrkdwn",
@@ -120,6 +128,10 @@ jobs:
                     {
                       "type": "mrkdwn",
                       "text": "*Failed tests:*\nAll tests (unit, generic, singular)"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Run ID:*\n${{ github.run_id }}"
                     }
                   ]
                 }
@@ -127,6 +139,10 @@ jobs:
             }
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+
+      - name: Fail workflow if tests failed
+        if: steps.all_tests.outcome == 'failure'
+        run: exit 1
 
       - name: Run dbt run (Run data transformations on the catalog_test environment)
         run: dbt run --profiles-dir ~/.dbt

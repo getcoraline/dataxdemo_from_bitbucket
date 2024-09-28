@@ -125,4 +125,7 @@ jobs:
       - name: Fail workflow if tests failed
         if: steps.unit_generic_tests.outcome == 'failure'
         run: exit 1
-        #
+
+      - name: Run dbt run (Run data transformations on the catalog_test environment)
+        run: dbt run --profiles-dir ~/.dbt
+        
