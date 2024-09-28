@@ -45,19 +45,20 @@ jobs:
       - name: Run unit tests and generic tests (Execute unit and generic tests)
         run: dbt test --profiles-dir ~/.dbt --select test_type:unit test_type:generic
 
-      - name: Notify Slack on PR Creation
+      - name: Notify Slack on dbt test failure
+        if: steps.dbt_tests.outcome == 'failure'
         uses: slackapi/slack-github-action@v1.27.0
         with:
           channel-id: 'dataxdemo-notifications'
           payload: |
             {
-              "text": "New Pull Request Created",
+              "text": "dbt tests failed in PR",
               "blocks": [
                 {
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "*New Pull Request Created*\n<${{ github.event.pull_request.html_url }}|PR #${{ github.event.pull_request.number }}: ${{ github.event.pull_request.title }}>"
+                    "text": "*dbt tests failed in PR*\n<${{ github.event.pull_request.html_url }}|PR #${{ github.event.pull_request.number }}: ${{ github.event.pull_request.title }}>"
                   }
                 },
                 {
@@ -70,6 +71,49 @@ jobs:
                     {
                       "type": "mrkdwn",
                       "text": "*Repository:*\n${{ github.repository }}"
+                    }
+                  ]
+                }
+              ]
+            }
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+
+      - name: Run unit tests and generic tests
+        id: unit_generic_tests
+        run: dbt test --profiles-dir ~/.dbt --select test_type:unit test_type:generic
+        continue-on-error: true
+
+      - name: Notify Slack on unit and generic test failure
+        if: steps.unit_generic_tests.outcome == 'failure'
+        uses: slackapi/slack-github-action@v1.27.0
+        with:
+          channel-id: 'dataxdemo-notifications'
+          payload: |
+            {
+              "text": "Unit and generic dbt tests failed on feature/dev01 branch",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*Unit and generic dbt tests failed on feature/dev01 branch*\n<${{ github.event.head_commit.url }}|Commit: ${{ github.event.head_commit.message }}>"
+                  }
+                },
+                {
+                  "type": "section",
+                  "fields": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Pusher:*\n${{ github.event.pusher.name }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Repository:*\n${{ github.repository }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Failed tests:*\nUnit and generic tests"
                     }
                   ]
                 }

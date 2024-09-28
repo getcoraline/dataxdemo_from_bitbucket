@@ -42,8 +42,91 @@ jobs:
       - name: Run dbt deps (Install required dbt packages and dependencies)
         run: dbt deps --profiles-dir ~/.dbt
 
-      - name: Run dbt run (Apply transformations to the data warehouse)
-        run: dbt run --profiles-dir ~/.dbt
+      - name: Run unit tests and generic tests
+        id: unit_generic_tests
+        run: dbt test --profiles-dir ~/.dbt --select test_type:unit test_type:generic
+        continue-on-error: true
 
-      - name: Run all tests (unit, generic, and singular tests)
+      - name: Notify Slack on unit and generic test failure
+        if: steps.unit_generic_tests.outcome == 'failure'
+        uses: slackapi/slack-github-action@v1.27.0
+        with:
+          channel-id: 'dataxdemo-notifications'
+          payload: |
+            {
+              "text": "Unit and generic dbt tests failed on QA branch",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*Unit and generic dbt tests failed on QA branch*\n<${{ github.event.head_commit.url }}|Commit: ${{ github.event.head_commit.message }}>"
+                  }
+                },
+                {
+                  "type": "section",
+                  "fields": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Pusher:*\n${{ github.event.pusher.name }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Repository:*\n${{ github.repository }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Failed tests:*\nUnit and generic tests"
+                    }
+                  ]
+                }
+              ]
+            }
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+
+      - name: Run all tests (including singular tests)
+        id: all_tests
         run: dbt test --profiles-dir ~/.dbt
+        continue-on-error: true
+
+      - name: Notify Slack on all tests failure
+        if: steps.all_tests.outcome == 'failure'
+        uses: slackapi/slack-github-action@v1.27.0
+        with:
+          channel-id: 'dataxdemo-notifications'
+          payload: |
+            {
+              "text": "All dbt tests (unit, generic, singular) failed on QA branch",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*All dbt tests (unit, generic, singular) failed on QA branch*\n<${{ github.event.head_commit.url }}|Commit: ${{ github.event.head_commit.message }}>"
+                  }
+                },
+                {
+                  "type": "section",
+                  "fields": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Pusher:*\n${{ github.event.pusher.name }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Repository:*\n${{ github.repository }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Failed tests:*\nAll tests (unit, generic, singular)"
+                    }
+                  ]
+                }
+              ]
+            }
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+
+      - name: Run dbt run (Run data transformations on the catalog_test environment)
+        run: dbt run --profiles-dir ~/.dbt
