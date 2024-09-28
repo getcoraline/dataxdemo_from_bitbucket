@@ -11,6 +11,39 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Notify Slack on PR Creation
+        uses: slackapi/slack-github-action@v1.27.0
+        with:
+          channel-id: 'dataxdemo-notifications'
+          payload: |
+            {
+              "text": "New Pull Request Created",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*New Pull Request Created*\n<${{ github.event.pull_request.html_url }}|PR #${{ github.event.pull_request.number }}: ${{ github.event.pull_request.title }}>"
+                  }
+                },
+                {
+                  "type": "section",
+                  "fields": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Creator:*\n${{ github.event.pull_request.user.login }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Repository:*\n${{ github.repository }}"
+                    }
+                  ]
+                }
+              ]
+            }
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+    
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -88,3 +121,7 @@ jobs:
             }
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+        
+      - name: Fail workflow if tests failed
+        if: steps.unit_generic_tests.outcome == 'failure'
+        run: exit 1
