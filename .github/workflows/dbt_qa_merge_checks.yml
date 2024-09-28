@@ -60,16 +60,12 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "*Unit and generic dbt tests failed on qa branch*\n<${{ github.event.pull_request.html_url }}|Commit: ${{ github.event.pull_request.title }}>"
+                    "text": "View Details:* <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}>"
                   }
                 },
                 {
                   "type": "section",
                   "fields": [
-                    {
-                      "type": "mrkdwn",
-                      "text": "*Pusher:*\n${{ github.event.pull_request.user.login }}"
-                    },
                     {
                       "type": "mrkdwn",
                       "text": "*Repository:*\n${{ github.repository }}"
@@ -111,16 +107,12 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "*All dbt tests (unit, generic, singular) failed on qa branch*\n<${{ github.event.pull_request.html_url }}|Commit: ${{ github.event.pull_request.title }}>"
+                    "text": "View Details:* <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}>"
                   }
                 },
                 {
                   "type": "section",
                   "fields": [
-                    {
-                      "type": "mrkdwn",
-                      "text": "*Pusher:*\n${{ github.event.pull_request.user.login }}"
-                    },
                     {
                       "type": "mrkdwn",
                       "text": "*Repository:*\n${{ github.repository }}"
