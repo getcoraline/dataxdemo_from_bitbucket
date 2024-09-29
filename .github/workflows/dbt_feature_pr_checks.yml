@@ -17,13 +17,13 @@ jobs:
           channel-id: 'dataxdemo-notifications'
           payload: |
             {
-              "text": "Notification: New Pull Request created on feature/dev01 branch",
+              "text": "Notification: New pull request created on feature/dev01 branch",
               "blocks": [
                 {
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "*Notification: New Pull Request Created on feature/dev01 branch*\n<${{ github.event.pull_request.html_url }}|*View Details: ${{ github.event.pull_request.title }}*>"
+                    "text": "*Notification: New pull request created on feature/dev01 branch*\n<${{ github.event.pull_request.html_url }}|*View Details: ${{ github.event.pull_request.title }}*>"
                   }
                 },
                 {
