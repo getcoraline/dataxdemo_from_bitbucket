@@ -17,7 +17,7 @@ jobs:
           channel-id: 'dataxdemo-notifications'
           payload: |
             {
-              "text": "Notification: New Pull Request Created on feature/dev01 branch",
+              "text": "Notification: New Pull Request created on feature/dev01 branch",
               "blocks": [
                 {
                   "type": "section",
