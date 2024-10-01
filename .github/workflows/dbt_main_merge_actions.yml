@@ -51,8 +51,8 @@ jobs:
       - name: Generate dbt docs
         run: dbt docs generate --profiles-dir ~/.dbt
 
-#      - name: Run OpenMetadata ingestion (Ingest metadata into OpenMetadata)
-#        env:
-#          OPENMETADATA_JWT_TOKEN: ${{ secrets.OPENMETADATA_JWT_TOKEN }}
-#        run: |
-#          python -m metadata ingest -c ${{ github.workspace }}/openmetadata_config.yaml
+      - name: Run OpenMetadata ingestion (Ingest metadata into OpenMetadata)
+        env:
+          OPENMETADATA_JWT_TOKEN: ${{ secrets.OPENMETADATA_JWT_TOKEN }}
+        run: |
+          python -m metadata ingest -c ${{ github.workspace }}/openmetadata_config.yaml
