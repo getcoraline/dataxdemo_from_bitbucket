@@ -20,7 +20,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install dbt-core dbt-databricks
-          pip install openmetadata-ingestion
+          pip install "openmetadata-ingestion[dbt]==1.5.5"
 
       - name: Create dbt profiles.yml (Configure dbt profile for production environment)
         run: |
