@@ -1,0 +1,18 @@
+select
+      count(*) as failures,
+      count(*) != 0 as should_warn,
+      count(*) != 0 as should_error
+    from (
+      -- ตรวจสอบเงื่อนไขของลูกค้าที่มีความจงรักภักดี (loyal customer)
+WITH customer_validation AS (
+    SELECT 
+        is_loyal_customer,
+        customer_lifetime_days,
+        total_orders
+    FROM `catalog_develop`.`default`.`mart_jaffle_data__customer_360`
+)
+SELECT *
+FROM customer_validation
+WHERE is_loyal_customer = TRUE AND (customer_lifetime_days <= 180 OR total_orders <= 10)
+      
+    ) dbt_internal_test
