@@ -6,9 +6,9 @@ source:
       type: DBT
       dbtConfigSource:
         dbtConfigType: local
-        dbtCatalogFilePath: target/catalog.json
-        dbtManifestFilePath: target/manifest.json
-        dbtRunResultsFilePath: target/run_results.json
+        dbtCatalogFilePath: ${{ github.workspace }}/target/catalog.json
+        dbtManifestFilePath: /opt/hostedtoolcache/Python/3.11.10/x64/lib/python3.11/site-packages/metadata/readers/file/local.py/target/manifest.json
+        dbtRunResultsFilePath: ${{ github.workspace }}/target/run_results.json
       dbtUpdateDescriptions: true
       includeTags: true
       dbtClassificationName: dbtTags
