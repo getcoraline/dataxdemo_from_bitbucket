@@ -117,16 +117,12 @@ jobs:
             let errorCount = 0;
             try {
               const fullOutput = fs.readFileSync('test_output.txt', 'utf8');
-              console.log("Full output:", fullOutput);  // Log full output for debugging
-              
-              // Use a more specific regex to match ERROR lines
-              const errorRegex = /^\s*\d+\s+of\s+\d+\s+ERROR\s+/;
+              // Filter the output to only include lines with "ERROR" or "FAIL"
               const errorLines = fullOutput.split('\n')
-                .filter(line => errorRegex.test(line));
+                .filter(line => line.includes('ERROR') || line.includes('FAIL'));
               
-              errorCount = errorLines.length;
-              console.log("Error count:", errorCount);  // Log error count
-              console.log("Error lines:", errorLines);  // Log error lines
+              // Subtract 1 from the error count to exclude the summary line
+              errorCount = Math.max(0, errorLines.length - 1);
               
               testOutput = errorLines.join('\n');
               if (errorCount === 0) {
@@ -166,7 +162,6 @@ jobs:
               repo: context.repo.repo,
               body: reportBody
             });
-
 
       - name: Notify Slack on test failures
         if: steps.unit_generic_tests.outcome == 'failure'
