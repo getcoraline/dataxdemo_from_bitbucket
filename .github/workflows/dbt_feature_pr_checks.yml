@@ -154,7 +154,7 @@ jobs:
               }
             };
 
-            const reportBody = `## Custom Data Quality Report
+            const reportBody = `## Data Quality Report
 
             ### Test Results:
             ${formatTestResults(testResults, errorCount)}
