@@ -49,31 +49,35 @@ jobs:
 
       - name: Run Unit, Generic, Singular, and Great Expectations tests
         id: all_tests
-        run: dbt test --profiles-dir ~/.dbt
+        run: dbt test --profiles-dir ~/.dbt --output path/to/all_results.json
         continue-on-error: true
 
       - name: Generate test summary
         id: test_summary
         run: |
-          echo "UNIT_GENERIC_SUMMARY=$(python -c "
+          echo "UNIT_GENERIC_SUMMARY<<EOF" >> $GITHUB_OUTPUT
+          python -c "
           import json
           with open('unit_generic_results.json') as f:
               data = json.load(f)
           failed = [r for r in data['results'] if r['status'] == 'fail']
           print(f'{len(failed)} unit/generic tests failed')
-          for test in failed[:5]:  # Limit to first 5 failures
+          for test in failed[:5]:
               print(f'- {test['unique_id']}: {test['message']}')
-          ")" >> $GITHUB_OUTPUT
+          " >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
           
-          echo "ALL_TESTS_SUMMARY=$(python -c "
+          echo "ALL_TESTS_SUMMARY<<EOF" >> $GITHUB_OUTPUT
+          python -c "
           import json
-          with open('all_results.json') as f:
+          with open('path/to/all_results.json') as f:
               data = json.load(f)
           failed = [r for r in data['results'] if r['status'] == 'fail']
           print(f'{len(failed)} total tests failed')
-          for test in failed[:5]:  # Limit to first 5 failures
+          for test in failed[:5]:
               print(f'- {test['unique_id']}: {test['message']}')
-          ")" >> $GITHUB_OUTPUT
+          " >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Notify Slack - Unit and Generic Tests
         if: steps.unit_generic_tests.outcome == 'failure'
@@ -132,7 +136,7 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "${{ steps.test_summary.outputs.ALL_TESTS_SUMMARY }}"
+                    "text": "${{ steps.test_summary.outputs.ALL_TESTS_SUMMARY || 'No detailed test summary available. Please check the job results for more information.' }}"
                   }
                 },
                 {
