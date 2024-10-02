@@ -115,16 +115,25 @@ jobs:
             const fs = require('fs');
             let testOutput = '';
             let errorCount = 0;
+
             try {
               const fullOutput = fs.readFileSync('test_output.txt', 'utf8');
               // Filter the output to only include lines with "ERROR" or "FAIL"
               const errorLines = fullOutput.split('\n')
                 .filter(line => line.includes('ERROR') || line.includes('FAIL'));
               
-              // Subtract 1 from the error count to exclude the summary line
-              errorCount = Math.max(0, errorLines.length - 1);
+              // Count unique errors by looking at the test names
+              const uniqueErrors = new Set();
+              errorLines.forEach(line => {
+                const match = line.match(/ERROR ([^\s]+)/);
+                if (match) {
+                  uniqueErrors.add(match[1]);
+                }
+              });
               
+              errorCount = uniqueErrors.size;
               testOutput = errorLines.join('\n');
+              
               if (errorCount === 0) {
                 testOutput = 'No errors found in the test output.';
               }
@@ -132,8 +141,9 @@ jobs:
               console.log('Error reading test_output.txt:', error);
               testOutput = 'No test output available';
             }
+
             const testResults = ${{ toJson(steps.fetch_run_data.outputs.result) }};
-            
+
             const formatTestResults = (results, errorCount) => {
               if (errorCount > 0) {
                 return `${errorCount} test(s) failed. Please check the error output below for details.`;
@@ -143,11 +153,10 @@ jobs:
                 return 'All tests passed successfully.';
               }
             };
-            
+
             const reportBody = `## Custom Data Quality Report
 
-            ### Test Results:
-            ${formatTestResults(testResults, errorCount)}
+            ### Test Results: ${formatTestResults(testResults, errorCount)}
 
             ### dbt Test Error Output:
             \`\`\`
@@ -155,7 +164,7 @@ jobs:
             \`\`\`
 
             For detailed results, please check the [Actions tab](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}).`;
-            
+
             await github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
