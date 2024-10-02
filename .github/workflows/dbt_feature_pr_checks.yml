@@ -146,7 +146,7 @@ jobs:
 
             const formatTestResults = (results, errorCount) => {
               if (errorCount > 0) {
-                return `${errorCount} test(s) failed.\nPlease check the error output below for details.`;
+                return `${errorCount} test(s) failed. Please check the error output below for details.`;
               } else if (!Array.isArray(results) || results.length === 0) {
                 return 'No test results available. Please check the full log for more information.';
               } else {
