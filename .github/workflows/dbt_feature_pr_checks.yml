@@ -114,12 +114,14 @@ jobs:
           script: |
             const fs = require('fs');
             let testOutput = '';
+            let errorCount = 0;
             try {
               const fullOutput = fs.readFileSync('test_output.txt', 'utf8');
               // Filter the output to only include lines with "ERROR" or "FAIL"
               testOutput = fullOutput.split('\n')
-                .filter(line => line.includes('ERROR') || line.includes('FAIL'))
-                .join('\n');
+                .filter(line => line.includes('ERROR') || line.includes('FAIL'));
+              errorCount = testOutput.length;
+              testOutput = testOutput.join('\n');
               if (!testOutput) {
                 testOutput = 'No errors found in the test output.';
               }
@@ -129,20 +131,20 @@ jobs:
             }
             const testResults = ${{ toJson(steps.fetch_run_data.outputs.result) }};
             
-            const formatTestResults = (results) => {
-              if (!Array.isArray(results) || results.length === 0) {
-                return 'No test results available';
+            const formatTestResults = (results, errorCount) => {
+              if (errorCount > 0) {
+                return `${errorCount} test(s) failed. Please check the error output below for details.`;
+              } else if (!Array.isArray(results) || results.length === 0) {
+                return 'No test results available. Please check the full log for more information.';
+              } else {
+                return 'All tests passed successfully.';
               }
-              return results
-                .filter(result => result.status !== 'success')
-                .map(result => `- ${result.name}: ❌ Failed`)
-                .join('\n') || 'All tests passed successfully.';
             };
             
             const reportBody = `## Custom Data Quality Report
 
-            ### Failed Test Results:
-            ${formatTestResults(testResults)}
+            ### Test Results:
+            ${formatTestResults(testResults, errorCount)}
 
             ### dbt Test Error Output:
             \`\`\`
