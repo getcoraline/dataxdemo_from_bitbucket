@@ -12,6 +12,7 @@ source:
       dbtUpdateDescriptions: true
       includeTags: true
       dbtClassificationName: dbtTags
+      
 sink:
   type: metadata-rest
   config: {}
