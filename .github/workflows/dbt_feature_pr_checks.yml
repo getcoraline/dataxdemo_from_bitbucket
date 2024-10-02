@@ -115,7 +115,14 @@ jobs:
             const fs = require('fs');
             let testOutput = '';
             try {
-              testOutput = fs.readFileSync('test_output.txt', 'utf8');
+              const fullOutput = fs.readFileSync('test_output.txt', 'utf8');
+              // Filter the output to only include lines with "ERROR" or "FAIL"
+              testOutput = fullOutput.split('\n')
+                .filter(line => line.includes('ERROR') || line.includes('FAIL'))
+                .join('\n');
+              if (!testOutput) {
+                testOutput = 'No errors found in the test output.';
+              }
             } catch (error) {
               console.log('Error reading test_output.txt:', error);
               testOutput = 'No test output available';
@@ -126,15 +133,18 @@ jobs:
               if (!Array.isArray(results) || results.length === 0) {
                 return 'No test results available';
               }
-              return results.map(result => `- ${result.name}: ${result.status === 'success' ? '✅ Passed' : '❌ Failed'}`).join('\n');
+              return results
+                .filter(result => result.status !== 'success')
+                .map(result => `- ${result.name}: ❌ Failed`)
+                .join('\n') || 'All tests passed successfully.';
             };
             
             const reportBody = `## Custom Data Quality Report
 
-            ### Test Results:
+            ### Failed Test Results:
             ${formatTestResults(testResults)}
 
-            ### dbt Test Output:
+            ### dbt Test Error Output:
             \`\`\`
             ${testOutput}
             \`\`\`
