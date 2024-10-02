@@ -6,13 +6,13 @@ source:
       type: DBT
       dbtConfigSource:
         dbtConfigType: local
-        dbtCatalogFilePath: /opt/hostedtoolcache/Python/3.11.10/x64/lib/python3.11/site-packages/metadata/readers/file/local.py/${{ github.workspace }}/target/catalog.json
-        dbtManifestFilePath: /opt/hostedtoolcache/Python/3.11.10/x64/lib/python3.11/site-packages/metadata/readers/file/local.py/${{ github.workspace }}/target/manifest.json
-        dbtRunResultsFilePath: /opt/hostedtoolcache/Python/3.11.10/x64/lib/python3.11/site-packages/metadata/readers/file/local.py/${{ github.workspace }}/target/run_results.json
+        dbtCatalogFilePath: https://github.com/getcoraline/dataxdemo_github/blob/58a29ba45bba5a5a2ed2927854fdec09b3e2c7e3/target/catalog.json
+        dbtManifestFilePath: https://github.com/getcoraline/dataxdemo_github/blob/58a29ba45bba5a5a2ed2927854fdec09b3e2c7e3/target/manifest.json
+        dbtRunResultsFilePath: https://github.com/getcoraline/dataxdemo_github/blob/58a29ba45bba5a5a2ed2927854fdec09b3e2c7e3/target/run_results.json
       dbtUpdateDescriptions: true
       includeTags: true
       dbtClassificationName: dbtTags
-      
+
 sink:
   type: metadata-rest
   config: {}
