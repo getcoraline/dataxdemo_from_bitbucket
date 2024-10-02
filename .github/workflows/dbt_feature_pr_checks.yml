@@ -117,12 +117,17 @@ jobs:
             let errorCount = 0;
             try {
               const fullOutput = fs.readFileSync('test_output.txt', 'utf8');
-              // Filter the output to only include lines with "ERROR" or "FAIL"
-              const errorLines = fullOutput.split('\n')
-                .filter(line => line.includes('ERROR') || line.includes('FAIL'));
               
-              // Subtract 1 from the error count to exclude the summary line
-              errorCount = Math.max(0, errorLines.length - 1);
+              // Filter lines with 'ERROR' but exclude irrelevant summary or non-test related lines
+              const errorLines = fullOutput.split('\n')
+                .filter(line => 
+                  line.includes('ERROR') && 
+                  !line.includes('Done.') &&  // Exclude summary
+                  !line.match(/PASS|WARN|SKIP|TOTAL|SQLSTATE/)  // Exclude metadata lines
+                );
+              
+              // Set error count directly from filtered error lines
+              errorCount = errorLines.length;
               
               testOutput = errorLines.join('\n');
               if (errorCount === 0) {
@@ -132,22 +137,19 @@ jobs:
               console.log('Error reading test_output.txt:', error);
               testOutput = 'No test output available';
             }
-            const testResults = ${{ toJson(steps.fetch_run_data.outputs.result) }};
-            
-            const formatTestResults = (results, errorCount) => {
+
+            const formatTestResults = (errorCount) => {
               if (errorCount > 0) {
                 return `${errorCount} test(s) failed. Please check the error output below for details.`;
-              } else if (!Array.isArray(results) || results.length === 0) {
-                return 'No test results available. Please check the full log for more information.';
               } else {
                 return 'All tests passed successfully.';
               }
             };
-            
+
             const reportBody = `## Custom Data Quality Report
 
             ### Test Results:
-            ${formatTestResults(testResults, errorCount)}
+            ${formatTestResults(errorCount)}
 
             ### dbt Test Error Output:
             \`\`\`
@@ -155,13 +157,14 @@ jobs:
             \`\`\`
 
             For detailed results, please check the [Actions tab](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}).`;
-            
+
             await github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
               body: reportBody
             });
+
 
       - name: Notify Slack on test failures
         if: steps.unit_generic_tests.outcome == 'failure'
