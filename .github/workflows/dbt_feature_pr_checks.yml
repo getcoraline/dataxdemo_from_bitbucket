@@ -117,13 +117,25 @@ jobs:
             let errorCount = 0;
 
             try {
-              testOutput = fs.readFileSync('test_output.txt', 'utf8');
+              const fullOutput = fs.readFileSync('test_output.txt', 'utf8');
+              // Filter the output to only include lines with "ERROR" or "FAIL"
+              const errorLines = fullOutput.split('\n')
+                .filter(line => line.includes('ERROR') || line.includes('FAIL'));
               
-              // Count errors by looking at the "ERROR" occurrences
-              errorCount = (testOutput.match(/ERROR/g) || []).length;
+              // Count unique errors by looking at the test names
+              const uniqueErrors = new Set();
+              errorLines.forEach(line => {
+                const match = line.match(/ERROR ([^\s]+)/);
+                if (match) {
+                  uniqueErrors.add(match[1]);
+                }
+              });
+              
+              errorCount = uniqueErrors.size;
+              testOutput = errorLines.join('\n');
               
               if (errorCount === 0) {
-                testOutput += '\nNo errors found in the test output.';
+                testOutput = 'No errors found in the test output.';
               }
             } catch (error) {
               console.log('Error reading test_output.txt:', error);
@@ -134,8 +146,8 @@ jobs:
 
             const formatTestResults = (results, errorCount) => {
               if (errorCount > 0) {
-                return `${errorCount} test(s) failed. Please check the full output below for details.`;
-              } else if (!testOutput || testOutput === 'No test output available') {
+                return `${errorCount} test(s) failed. Please check the error output below for details.`;
+              } else if (!Array.isArray(results) || results.length === 0) {
                 return 'No test results available. Please check the full log for more information.';
               } else {
                 return 'All tests passed successfully.';
@@ -146,12 +158,12 @@ jobs:
 
             ### Test Results: ${formatTestResults(testResults, errorCount)}
 
-            ### Full dbt Test Output:
+            ### dbt Test Error Output:
             \`\`\`
             ${testOutput}
             \`\`\`
 
-            For a visual representation of the results, please check the [Actions tab](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}).`;
+            For detailed results, please check the [Actions tab](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}).`;
 
             await github.rest.issues.createComment({
               issue_number: context.issue.number,
@@ -159,7 +171,6 @@ jobs:
               repo: context.repo.repo,
               body: reportBody
             });
-
 
       - name: Notify Slack on test failures
         if: steps.unit_generic_tests.outcome == 'failure'
