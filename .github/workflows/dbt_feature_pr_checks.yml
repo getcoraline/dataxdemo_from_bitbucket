@@ -86,29 +86,23 @@ jobs:
         with:
           github-token: ${{secrets.GITHUB_TOKEN}}
           script: |
-            const runId = context.runId;
-            const { data: jobs } = await github.rest.actions.listJobsForWorkflowRun({
+            const { data: { jobs } } = await github.rest.actions.listJobsForWorkflowRun({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              run_id: runId
+              run_id: context.runId
             });
-            const currentJob = jobs.jobs.find(job => job.status === 'in_progress');
-            const jobId = currentJob.id;
-            
-            const { data: steps } = await github.rest.actions.listJobsForWorkflowRun({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              job_id: jobId
-            });
-            
-            const testResults = steps.steps
+            const currentJob = jobs.find(job => job.status === 'in_progress');
+            if (!currentJob) {
+              console.log('No in-progress job found');
+              return [];
+            }
+            const testResults = currentJob.steps
               .filter(step => step.name.includes('test') || step.name.includes('dbt'))
               .map(step => ({
                 name: step.name,
                 status: step.conclusion || step.status,
                 number: step.number
               }));
-            
             console.log(JSON.stringify(testResults, null, 2));
             return testResults;
 
@@ -119,10 +113,19 @@ jobs:
           github-token: ${{secrets.GITHUB_TOKEN}}
           script: |
             const fs = require('fs');
-            const testOutput = fs.readFileSync('test_output.txt', 'utf8');
-            const testResults = ${{ steps.fetch_run_data.outputs.result }};
+            let testOutput = '';
+            try {
+              testOutput = fs.readFileSync('test_output.txt', 'utf8');
+            } catch (error) {
+              console.log('Error reading test_output.txt:', error);
+              testOutput = 'No test output available';
+            }
+            const testResults = ${{ toJson(steps.fetch_run_data.outputs.result) }};
             
             const formatTestResults = (results) => {
+              if (!Array.isArray(results) || results.length === 0) {
+                return 'No test results available';
+              }
               return results.map(result => `- ${result.name}: ${result.status === 'success' ? '✅ Passed' : '❌ Failed'}`).join('\n');
             };
             
