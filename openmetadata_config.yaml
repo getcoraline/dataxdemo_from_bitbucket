@@ -6,9 +6,9 @@ source:
       type: DBT
       dbtConfigSource:
         dbtConfigType: local
-        dbtCatalogFilePath: https://github.com/getcoraline/dataxdemo_github/blob/58a29ba45bba5a5a2ed2927854fdec09b3e2c7e3/target/catalog.json
-        dbtManifestFilePath: https://github.com/getcoraline/dataxdemo_github/blob/58a29ba45bba5a5a2ed2927854fdec09b3e2c7e3/target/manifest.json
-        dbtRunResultsFilePath: https://github.com/getcoraline/dataxdemo_github/blob/58a29ba45bba5a5a2ed2927854fdec09b3e2c7e3/target/run_results.json
+        dbtCatalogFilePath: https://raw.githubusercontent.com/getcoraline/dataxdemo_github/58a29ba45bba5a5a2ed2927854fdec09b3e2c7e3/target/catalog.json
+        dbtManifestFilePath: https://raw.githubusercontent.com/getcoraline/dataxdemo_github/58a29ba45bba5a5a2ed2927854fdec09b3e2c7e3/target/manifest.json
+        dbtRunResultsFilePath: https://raw.githubusercontent.com/getcoraline/dataxdemo_github/58a29ba45bba5a5a2ed2927854fdec09b3e2c7e3/target/run_results.json
       dbtUpdateDescriptions: true
       includeTags: true
       dbtClassificationName: dbtTags
