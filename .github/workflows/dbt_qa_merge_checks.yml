@@ -47,83 +47,100 @@ jobs:
         run: dbt test --profiles-dir ~/.dbt --select test_type:unit test_type:generic
         continue-on-error: true
 
-      - name: Notify Slack on test failures (Unit, Generic (with Great Expectations))
-        if: steps.unit_generic_tests.outcome == 'failure'
-        uses: slackapi/slack-github-action@v1.27.0
-        with:
-          channel-id: 'dataxdemo-notifications'
-          payload: |
-            {
-              "text": "Failure Notification: Tests failed on qa branch",
-              "blocks": [
-                {
-                  "type": "section",
-                  "text": {
-                    "type": "mrkdwn",
-                    "text": "Failure Notification: Tests failed on qa branch*\n<https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|*Check Job Results*>"
-                  }
-                },
-                {
-                  "type": "section",
-                  "fields": [
-                    {
-                      "type": "mrkdwn",
-                      "text": "*Repository:*\n${{ github.repository }}"
-                    },
-                    {
-                      "type": "mrkdwn",
-                      "text": "*Failed tests:*\nUnit and Generic (with Great Expectations) tests"
-                    },
-                    {
-                      "type": "mrkdwn",
-                      "text": "*Run ID:*\n${{ github.run_id }}"
-                    }
-                  ]
-                }
-              ]
-            }
-        env:
-          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
-        
-      - name: Fail workflow if tests failed
-        if: steps.unit_generic_tests.outcome == 'failure'
-        run: exit 1
-
       - name: Run Unit, Generic, Singular, and Great Expectations tests
         id: all_tests
         run: dbt test --profiles-dir ~/.dbt
         continue-on-error: true
 
-      - name: Notify Slack on test failures (Unit, Generic (with Great Expectations), Singular)
+      - name: Generate test summary
+        id: test_summary
+        run: |
+          echo "UNIT_GENERIC_SUMMARY=$(python -c "
+          import json
+          with open('unit_generic_results.json') as f:
+              data = json.load(f)
+          failed = [r for r in data['results'] if r['status'] == 'fail']
+          print(f'{len(failed)} unit/generic tests failed')
+          for test in failed[:5]:  # Limit to first 5 failures
+              print(f'- {test['unique_id']}: {test['message']}')
+          ")" >> $GITHUB_OUTPUT
+          
+          echo "ALL_TESTS_SUMMARY=$(python -c "
+          import json
+          with open('all_results.json') as f:
+              data = json.load(f)
+          failed = [r for r in data['results'] if r['status'] == 'fail']
+          print(f'{len(failed)} total tests failed')
+          for test in failed[:5]:  # Limit to first 5 failures
+              print(f'- {test['unique_id']}: {test['message']}')
+          ")" >> $GITHUB_OUTPUT
+
+      - name: Notify Slack - Unit and Generic Tests
+        if: steps.unit_generic_tests.outcome == 'failure'
+        uses: slackapi/slack-github-action@v1.27.0
+        with:
+          channel-id: 'dataxdemo-notifications'
+          payload: |
+            {
+              "text": "Unit and Generic Tests Failure Summary for qa branch",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*Unit and Generic Tests Failure Summary for qa branch*\n<https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Job Results>"
+                  }
+                },
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "${{ steps.test_summary.outputs.UNIT_GENERIC_SUMMARY }}"
+                  }
+                },
+                {
+                  "type": "context",
+                  "elements": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "Repository: ${{ github.repository }} | Run ID: ${{ github.run_id }}"
+                    }
+                  ]
+                }
+              ]
+            }
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+
+      - name: Notify Slack - All Tests
         if: steps.all_tests.outcome == 'failure'
         uses: slackapi/slack-github-action@v1.27.0
         with:
           channel-id: 'dataxdemo-notifications'
           payload: |
             {
-              "text": "Failure Notification: Tests failed on qa branch",
+              "text": "All Tests Failure Summary for qa branch",
               "blocks": [
                 {
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "*Failure Notification: Tests failed on qa branch*\n<https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|*Check Job Results*>"
+                    "text": "*All Tests Failure Summary for qa branch*\n<https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|View Job Results>"
                   }
                 },
                 {
                   "type": "section",
-                  "fields": [
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "${{ steps.test_summary.outputs.ALL_TESTS_SUMMARY }}"
+                  }
+                },
+                {
+                  "type": "context",
+                  "elements": [
                     {
                       "type": "mrkdwn",
-                      "text": "*Repository:*\n${{ github.repository }}"
-                    },
-                    {
-                      "type": "mrkdwn",
-                      "text": "*Failed tests:*\nUnit, Generic (with Great Expectations), and Singular tests"
-                    },
-                    {
-                      "type": "mrkdwn",
-                      "text": "*Run ID:*\n${{ github.run_id }}"
+                      "text": "Repository: ${{ github.repository }} | Run ID: ${{ github.run_id }}"
                     }
                   ]
                 }
@@ -133,7 +150,7 @@ jobs:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
 
       - name: Fail workflow if tests failed
-        if: steps.all_tests.outcome == 'failure'
+        if: steps.unit_generic_tests.outcome == 'failure' || steps.all_tests.outcome == 'failure'
         run: exit 1
 
       - name: Run dbt run (Run data transformations on the catalog_test environment)
