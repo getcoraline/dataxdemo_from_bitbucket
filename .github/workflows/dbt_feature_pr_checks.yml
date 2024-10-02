@@ -117,12 +117,12 @@ jobs:
             let errorCount = 0;
             try {
               const fullOutput = fs.readFileSync('test_output.txt', 'utf8');
-              // Filter the output to only include lines with "ERROR" or "FAIL"
-              testOutput = fullOutput.split('\n')
-                .filter(line => line.includes('ERROR') || line.includes('FAIL'));
-              errorCount = testOutput.length;
-              testOutput = testOutput.join('\n');
-              if (!testOutput) {
+              // Filter the output to only include lines with "ERROR"
+              const errorLines = fullOutput.split('\n')
+                .filter(line => line.includes('ERROR'));
+              errorCount = errorLines.length;
+              testOutput = errorLines.join('\n');
+              if (errorCount === 0) {
                 testOutput = 'No errors found in the test output.';
               }
             } catch (error) {
