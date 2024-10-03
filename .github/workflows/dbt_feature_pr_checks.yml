@@ -11,13 +11,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Get Thailand Time
+        id: th_time
+        run: |
+          echo "th_time=$(TZ='Asia/Bangkok' date '+%Y-%m-%d %H:%M:%S')" >> $GITHUB_OUTPUT
+
       - name: Notify Slack on PR Creation
         uses: slackapi/slack-github-action@v1.27.0
         with:
           channel-id: 'dataxdemo-notifications'
           payload: |
             {
-              "text": "📢 Notification: New pull request created on feature/dev01 branch",
+              "text": "Notification: New pull request created on feature/dev01 branch",
               "blocks": [
                 {
                   "type": "section",
@@ -43,7 +48,7 @@ jobs:
                     },
                     {
                       "type": "mrkdwn",
-                      "text": "*Created:*\n${{ github.event.pull_request.created_at }}"
+                      "text": "*Created (Thailand Time):*\n${{ steps.th_time.outputs.th_time }}"
                     }
                   ]
                 }
@@ -188,7 +193,7 @@ jobs:
           channel-id: 'dataxdemo-notifications'
           payload: |
             {
-              "text": "❗Failure Notification: Tests failed on feature/dev01 branch",
+              "text": "Failure Notification: Tests failed on feature/dev01 branch",
               "blocks": [
                 {
                   "type": "section",
@@ -211,10 +216,6 @@ jobs:
                     {
                       "type": "mrkdwn",
                       "text": "*Failed tests:*\nUnit and Generic (with Great Expectations) tests"
-                    },
-                    {
-                      "type": "mrkdwn",
-                      "text": "*Error count:*\n${{ steps.create_custom_report.outputs.errorCount }}"
                     }
                   ]
                 }
