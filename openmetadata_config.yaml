@@ -1,6 +1,6 @@
 source:
   type: dbt
-  serviceName: dataxdemo
+  serviceName: uc-dataxdemo
   sourceConfig:
     config:
       type: DBT
