@@ -6,9 +6,9 @@ source:
       type: DBT
       dbtConfigSource:
         dbtConfigType: local
-        dbtCatalogFilePath: /home/vmadmin/openmetadata-docker/dbt_files/catalog.json
-        dbtManifestFilePath: /home/vmadmin/openmetadata-docker/dbt_files/manifest.json
-        dbtRunResultsFilePath: /home/vmadmin/openmetadata-docker/dbt_files/run_results.json
+        dbtCatalogFilePath: /home/vmadmin/openmetadata-docker/ingestion-volume-tmp/openmetadata/dbt_files/catalog.json
+        dbtManifestFilePath: /home/vmadmin/openmetadata-docker/ingestion-volume-tmp/openmetadata/dbt_files/manifest.json
+        dbtRunResultsFilePath: /home/vmadmin/openmetadata-docker/ingestion-volume-tmp/openmetadata/dbt_files/run_results.json
       dbtUpdateDescriptions: true
       includeTags: true
       dbtClassificationName: dbtTags
