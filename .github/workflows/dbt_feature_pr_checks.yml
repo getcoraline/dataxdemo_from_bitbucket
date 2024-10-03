@@ -48,7 +48,7 @@ jobs:
                     },
                     {
                       "type": "mrkdwn",
-                      "text": "*Created (Thailand Time):*\n${{ steps.th_time.outputs.th_time }}"
+                      "text": "*Created (UTC+7):*\n${{ steps.th_time.outputs.th_time }}"
                     }
                   ]
                 }
