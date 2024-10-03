@@ -17,7 +17,7 @@ jobs:
           channel-id: 'dataxdemo-notifications'
           payload: |
             {
-              "text": "Notification: New pull request created on feature/dev01 branch",
+              "text": "📢 Notification: New pull request created on feature/dev01 branch",
               "blocks": [
                 {
                   "type": "section",
@@ -36,6 +36,14 @@ jobs:
                     {
                       "type": "mrkdwn",
                       "text": "*Repository:*\n${{ github.repository }}"
+                    }
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Branch:*\nfeature/dev01"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Created:*\n${{ github.event.pull_request.created_at }}"
                     }
                   ]
                 }
@@ -180,7 +188,7 @@ jobs:
           channel-id: 'dataxdemo-notifications'
           payload: |
             {
-              "text": "Failure Notification: Tests failed on feature/dev01 branch",
+              "text": "❗Failure Notification: Tests failed on feature/dev01 branch",
               "blocks": [
                 {
                   "type": "section",
@@ -206,7 +214,7 @@ jobs:
                     },
                     {
                       "type": "mrkdwn",
-                      "text": "*Pull Request:*\n${{ github.event.pull_request.html_url }}"
+                      "text": "*Error count:*\n${{ steps.create_custom_report.outputs.errorCount }}"
                     }
                   ]
                 }
