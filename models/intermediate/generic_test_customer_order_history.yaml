@@ -2,7 +2,7 @@ version: 2
 models:
   - name: int_jaffle_data__customer_order_history
     columns:
-      - name: customer_id
+      - name: customer
         data_tests:
           - unique
           - not_null
