@@ -21,7 +21,7 @@ jobs:
         run: |
           pip install dbt-core dbt-databricks
           pip install "openmetadata-ingestion[dbt]==1.5.5"
-          pip install paramiko  # สำหรับ SSH
+          pip install paramiko
 
       - name: Create dbt profiles.yml
         run: |
@@ -73,3 +73,4 @@ jobs:
           OPENMETADATA_JWT_TOKEN: ${{ secrets.OPENMETADATA_JWT_TOKEN }}
         run: |
           python -m metadata ingest -c ${{ github.workspace }}/openmetadata_config.yaml
+

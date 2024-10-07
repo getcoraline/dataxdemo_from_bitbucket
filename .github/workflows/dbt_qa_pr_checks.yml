@@ -1,9 +1,9 @@
-name: dbt feature/dev01 PR Checks
+name: dbt qa Merge Checks
 
 on:
   pull_request:
     branches:
-      - qa
+      - main
 
 jobs:
   dbt-test-and-run:

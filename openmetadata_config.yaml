@@ -6,9 +6,9 @@ source:
       type: DBT
       dbtConfigSource:
         dbtConfigType: local
-        dbtCatalogFilePath: /Users/coraline/Desktop/dataxdemo_github/target/catalog.json
-        dbtManifestFilePath: /Users/coraline/Desktop/dataxdemo_github/target/manifest.json
-        dbtRunResultsFilePath: /Users/coraline/Desktop/dataxdemo_github/target/run_results.json
+        dbtCatalogFilePath: /home/vmadmin/openmetadata-docker/ingestion-volume-tmp/openmetadata/dbt_files/catalog.json
+        dbtManifestFilePath: /home/vmadmin/openmetadata-docker/ingestion-volume-tmp/openmetadata/dbt_files/manifest.json
+        dbtRunResultsFilePath: /home/vmadmin/openmetadata-docker/ingestion-volume-tmp/openmetadata/dbt_files/run_results.json
       dbtUpdateDescriptions: true
       includeTags: true
       dbtClassificationName: dbtTags
