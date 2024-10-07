@@ -73,3 +73,6 @@ jobs:
           OPENMETADATA_JWT_TOKEN: ${{ secrets.OPENMETADATA_JWT_TOKEN }}
         run: |
           python -m metadata ingest -c ${{ github.workspace }}/openmetadata_config.yaml
+
+        
+##
