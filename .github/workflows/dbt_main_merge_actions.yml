@@ -74,5 +74,3 @@ jobs:
         run: |
           python -m metadata ingest -c ${{ github.workspace }}/openmetadata_config.yaml
 
-        
-##
