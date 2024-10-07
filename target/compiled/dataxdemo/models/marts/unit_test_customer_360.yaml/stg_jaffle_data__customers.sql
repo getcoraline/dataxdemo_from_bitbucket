@@ -7,3 +7,7 @@ union all
 select cast(2 as string)
  as id, cast('Bob' as string)
  as name
+union all
+select cast(3 as string)
+ as id, cast('Charlie' as string)
+ as name
