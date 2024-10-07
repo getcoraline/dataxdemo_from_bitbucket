@@ -1,0 +1,372 @@
+name: dbt qa Merge Checks
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  dbt-test-and-run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Get Thailand Time
+        id: th_time
+        run: |
+          echo "th_time=$(TZ='Asia/Bangkok' date '+%Y-%m-%d %H:%M:%S')" >> $GITHUB_OUTPUT
+
+      - name: Notify Slack on PR Creation
+        uses: slackapi/slack-github-action@v1.27.0
+        with:
+          channel-id: 'dataxdemo-notifications'
+          payload: |
+            {
+              "text": "Notification: New pull request created on feature/dev01 branch",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*Notification: New pull request created on feature/dev01 branch*\n<${{ github.event.pull_request.html_url }}|*View Details: ${{ github.event.pull_request.title }}*>"
+                  }
+                },
+                {
+                  "type": "section",
+                  "fields": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Creator:*\n${{ github.event.pull_request.user.login }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Repository:*\n${{ github.repository }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Branch:*\nfeature/dev01"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Created (UTC+7):*\n${{ steps.th_time.outputs.th_time }}"
+                    }
+                  ]
+                }
+              ]
+            }
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+    
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install dbt dbt-databricks
+
+      - name: Create profiles.yml (Configure dbt profile for development environment)
+        run: |
+          mkdir -p ~/.dbt
+          echo "
+          dataxdemo:
+            target: dev
+            outputs:
+              dev:
+                type: databricks
+                catalog: catalog_develop
+                schema: default
+                host: ${{ secrets.DATABRICKS_HOST }}
+                http_path: ${{ secrets.DATABRICKS_HTTP_PATH }}
+                token: ${{ secrets.DATABRICKS_TOKEN }}
+                threads: 4
+          " > ~/.dbt/profiles.yml
+
+      - name: Run dbt debug (Check dbt connection and configuration)
+        run: dbt debug --profiles-dir ~/.dbt
+
+      - name: Run dbt deps (Install required dbt packages and dependencies)
+        run: dbt deps --profiles-dir ~/.dbt
+
+      - name: Run Unit, Generic, and Great Expectations tests
+        id: unit_generic_tests
+        run: dbt test --profiles-dir ~/.dbt --select test_type:unit test_type:generic > test_output.txt
+        continue-on-error: true
+
+      - name: Fetch GitHub Actions Run Data
+        id: fetch_run_data
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{secrets.GITHUB_TOKEN}}
+          script: |
+            const { data: { jobs } } = await github.rest.actions.listJobsForWorkflowRun({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: context.runId
+            });
+            const currentJob = jobs.find(job => job.status === 'in_progress');
+            if (!currentJob) {
+              console.log('No in-progress job found');
+              return [];
+            }
+            const testResults = currentJob.steps
+              .filter(step => step.name.includes('test') || step.name.includes('dbt'))
+              .map(step => ({
+                name: step.name,
+                status: step.conclusion || step.status,
+                number: step.number
+              }));
+            console.log(JSON.stringify(testResults, null, 2));
+            return testResults;
+
+      - name: Create Custom Report
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{secrets.MY_GITHUB_TOKEN}}
+          script: |
+            const fs = require('fs');
+            let testOutput = '';
+            let errorCount = 0;
+
+            try {
+              const fullOutput = fs.readFileSync('test_output.txt', 'utf8');
+              // Filter the output to only include lines with "ERROR" or "FAIL"
+              const errorLines = fullOutput.split('\n')
+                .filter(line => line.includes('ERROR') || line.includes('FAIL'));
+              
+              // Count unique errors by looking at the test names
+              const uniqueErrors = new Set();
+              errorLines.forEach(line => {
+                const match = line.match(/ERROR ([^\s]+)/);
+                if (match) {
+                  uniqueErrors.add(match[1]);
+                }
+              });
+              
+              errorCount = uniqueErrors.size;
+              testOutput = errorLines.join('\n');
+              
+              if (errorCount === 0) {
+                testOutput = 'No errors found in the test output.';
+              }
+            } catch (error) {
+              console.log('Error reading test_output.txt:', error);
+              testOutput = 'No test output available';
+            }
+
+            const testResults = ${{ toJson(steps.fetch_run_data.outputs.result) }};
+
+            const formatTestResults = (results, errorCount) => {
+              if (errorCount > 0) {
+                return `${errorCount} test(s) failed. Please check the error output below for details.`;
+              } else if (!Array.isArray(results) || results.length === 0) {
+                return 'No test results available. Please check the full log for more information.';
+              } else {
+                return 'All tests passed successfully.';
+              }
+            };
+
+            const reportBody = `## Data Quality Report
+
+            ### Test Results:
+            ${formatTestResults(testResults, errorCount)}
+
+            ### dbt Test Error Output:
+            \`\`\`
+            ${testOutput}
+            \`\`\`
+
+            For detailed results, please check the [Actions tab](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}).`;
+
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: reportBody
+            });
+
+      - name: Notify Slack on test failures
+        if: steps.unit_generic_tests.outcome == 'failure'
+        uses: slackapi/slack-github-action@v1.27.0
+        with:
+          channel-id: 'dataxdemo-notifications'
+          payload: |
+            {
+              "text": "Failure Notification: Tests failed on feature/dev01 branch",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*Failure Notification: Tests failed on feature/dev01 branch*\n<${{ github.event.pull_request.html_url }}|*Check Job Results*>"
+                  }
+                },
+                {
+                  "type": "section",
+                  "fields": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Pusher:*\n${{ github.event.pull_request.user.login }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Repository:*\n${{ github.repository }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Failed tests:*\nUnit and Generic (with Great Expectations) tests"
+                    }
+                  ]
+                }
+              ]
+            }
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+        
+      - name: Fail workflow if tests failed
+        if: steps.unit_generic_tests.outcome == 'failure'
+        run: exit 1
+
+      - name: Run dbt run (Run data transformations on the catalog_develop environment)
+        run: dbt run --profiles-dir ~/.dbt
+      
+      - name: Run Unit, Generic, Singular, and Great Expectations tests
+        id: all_tests
+        run: dbt test --profiles-dir ~/.dbt > test_output.txt
+        continue-on-error: true
+
+      - name: Fetch GitHub Actions Run Data
+        id: fetch_run_data_2
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{secrets.GITHUB_TOKEN}}
+          script: |
+            const { data: { jobs } } = await github.rest.actions.listJobsForWorkflowRun({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: context.runId
+            });
+            const currentJob = jobs.find(job => job.status === 'in_progress');
+            if (!currentJob) {
+              console.log('No in-progress job found');
+              return [];
+            }
+            const testResults = currentJob.steps
+              .filter(step => step.name.includes('test') || step.name.includes('dbt'))
+              .map(step => ({
+                name: step.name,
+                status: step.conclusion || step.status,
+                number: step.number
+              }));
+            console.log(JSON.stringify(testResults, null, 2));
+            return testResults;
+
+      - name: Create Custom Report
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{secrets.MY_GITHUB_TOKEN}}
+          script: |
+            const fs = require('fs');
+            let testOutput = '';
+            let errorCount = 0;
+
+            try {
+              const fullOutput = fs.readFileSync('test_output.txt', 'utf8');
+              // Filter the output to only include lines with "ERROR" or "FAIL"
+              const errorLines = fullOutput.split('\n')
+                .filter(line => line.includes('ERROR') || line.includes('FAIL'));
+              
+              // Count unique errors by looking at the test names
+              const uniqueErrors = new Set();
+              errorLines.forEach(line => {
+                const match = line.match(/ERROR ([^\s]+)/);
+                if (match) {
+                  uniqueErrors.add(match[1]);
+                }
+              });
+              
+              errorCount = uniqueErrors.size;
+              testOutput = errorLines.join('\n');
+              
+              if (errorCount === 0) {
+                testOutput = 'No errors found in the test output.';
+              }
+            } catch (error) {
+              console.log('Error reading test_output.txt:', error);
+              testOutput = 'No test output available';
+            }
+
+            const testResults = ${{ toJson(steps.fetch_run_data.outputs.result) }};
+
+            const formatTestResults = (results, errorCount) => {
+              if (errorCount > 0) {
+                return `${errorCount} test(s) failed. Please check the error output below for details.`;
+              } else if (!Array.isArray(results) || results.length === 0) {
+                return 'No test results available. Please check the full log for more information.';
+              } else {
+                return 'All tests passed successfully.';
+              }
+            };
+
+            const reportBody = `## Data Quality Report
+
+            ### Test Results:
+            ${formatTestResults(testResults, errorCount)}
+
+            ### dbt Test Error Output:
+            \`\`\`
+            ${testOutput}
+            \`\`\`
+
+            For detailed results, please check the [Actions tab](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}).`;
+
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: reportBody
+            });
+
+      - name: Notify Slack on test failures
+        if: steps.all_tests.outcome == 'failure'
+        uses: slackapi/slack-github-action@v1.27.0
+        with:
+          channel-id: 'dataxdemo-notifications'
+          payload: |
+            {
+              "text": "Failure Notification: Tests failed on feature/dev01 branch",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*Failure Notification: Tests failed on feature/dev01 branch*\n<${{ github.event.pull_request.html_url }}|*Check Job Results*>"
+                  }
+                },
+                {
+                  "type": "section",
+                  "fields": [
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Pusher:*\n${{ github.event.pull_request.user.login }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Repository:*\n${{ github.repository }}"
+                    },
+                    {
+                      "type": "mrkdwn",
+                      "text": "*Failed tests:*\nUnit, Generic, Singular, and Great Expectations tests"
+                    }
+                  ]
+                }
+              ]
+            }
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+        
+      - name: Fail workflow if tests failed
+        if: steps.all_tests.outcome == 'failure'
+        run: exit 1
