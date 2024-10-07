@@ -1,10 +1,11 @@
 name: dbt main Merge Actions
 
 on:
-  push:
+  pull_request:
+    types:
+      - closed
     branches:
       - main
-
 jobs:
   dbt-build-and-generate-docs:
     runs-on: ubuntu-latest
