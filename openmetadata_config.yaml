@@ -1,17 +1,18 @@
 source:
   type: dbt
-  serviceName: dataxdemo
+  serviceName: uc-dataxdemo
   sourceConfig:
     config:
       type: DBT
       dbtConfigSource:
         dbtConfigType: local
-        dbtCatalogFilePath: ${{ github.workspace }}/target/catalog.json
-        dbtManifestFilePath: ${{ github.workspace }}/target/manifest.json
-        dbtRunResultsFilePath: ${{ github.workspace }}/target/run_results.json
+        dbtCatalogFilePath: /home/vmadmin/openmetadata-docker/ingestion-volume-tmp/openmetadata/dbt_files/catalog.json
+        dbtManifestFilePath: /home/vmadmin/openmetadata-docker/ingestion-volume-tmp/openmetadata/dbt_files/manifest.json
+        dbtRunResultsFilePath: /home/vmadmin/openmetadata-docker/ingestion-volume-tmp/openmetadata/dbt_files/run_results.json
       dbtUpdateDescriptions: true
       includeTags: true
       dbtClassificationName: dbtTags
+
 sink:
   type: metadata-rest
   config: {}
