@@ -1,7 +1,7 @@
 -- ตรวจสอบว่า customer_order_seq ถูกต้องตามลำดับเวลาของคำสั่งซื้อ
 WITH order_validation AS (
     SELECT 
-        customer_id,
+        customer,
         order_id,
         customer_order_seq,
         ROW_NUMBER() OVER (PARTITION BY customer_id ORDER BY ordered_at) AS calculated_order_seq
